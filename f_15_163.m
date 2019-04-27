@@ -25,71 +25,119 @@ titles = {
 	'wrist.R'				%%92
 };
 
-J_173_t_raw = csvread('make_human_173.csv',0,2);
-[~, t] = size(J_173_t_raw);
-n_j_173_t = length(row_extracted);
+J_173_t = csvread('make_human_173.csv',0,2);
+[~, t] = size(J_173_t);
+n_j_173_t = length(titles);
 %%read the data for joint 15 file
 J_15_t = csvread('make_human_15.csv',0,2);
-%%extract only the rotating joints from raw file
-J_173_t = zeros(n_j_173_t, t);
-for i_j_173_t = 1:n_j_173_t
-	J_173_t(i_j_173_t, :) = J_173_t_raw(row_extracted(i_j_173_t), :);
-end
-
 
 J_15 = J_15_t';
 J_173 = J_173_t';
-lb = zeros(15,1);
-ub = ones(15, 1);
-options = optimoptions('lsqlin','Algorithm','trust-region-reflective');
-%%options = optimoptions(options,'SubproblemAlgorithm','factorization');
-C = J_15;
-f = zeros(15, n_j_173_t);
-for i_f = 1:n_j_173_t
-    d = J_173(:,i_f);
-    f_15_163_i = lsqlin(C,d,[],[],[],[],lb,ub,[],options);
-    f(:, i_f) = f_15_163_i;
-end
 
-J_173_prime_t = (J_15*f)';
-%J_173_prime_t = J_173_t;
+%%  [ root ]=>root
+%%    [ pelvis.L, upperleg01.L ]=>upperleg01.L
+%%      [ upperleg02.L, lowerleg01.L ]=>lowerleg01.L
+%%        [ lowerleg02.L, foot.L ]=>foot.L
+%%    [ pelvis.R, upperleg01.R ]=>upperleg01.R
+%%      [ upperleg02.R, lowerleg01.R ]=>lowerleg01.R
+%%        [ lowerleg02.R, foot.R ]=>foot.R
+%%    [ spine05, spine04, spine03 ]=>spine03
+%%      [ spine02, spine01, clavicle.L, shoulder01.L, upperarm01.L ]=>upperarm01.L
+%%        [ upperarm02.L, lowerarm01.L ]=>lowerarm01.L
+%%          [ lowerarm02.L, wrist.L ]=>wrist.L
+%%      [ spine02, spine01, clavicle.R, shoulder01.R, upperarm01.R ]=>upperarm01.R
+%%        [ upperarm02.R, lowerarm01.R ]=>lowerarm01.R
+%%          [ lowerarm02.R, wrist.R ]=>wrist.R
+%%      [ spine02, spine01, neck01 ]=>neck01
+
+f_15_163_params = [
+      1, 1;   %root=>root
+      2, 5;   %upperleg01.L=>upperleg01.L
+      2, 2;   %upperleg01.L=>pelvis.L
+      5, 11;  %lowerleg01.L=>lowerleg01.L
+      5, 8;   %lowerleg01.L=>upperleg02.L
+      7, 19;  %foot.L=>foot.L
+      7, 14;  %foot.L=>lowerleg02.L
+      3, 6;   %upperleg01.R=>upperleg01.R
+      3, 3;   %upperleg01.R=>pelvis.R
+      6, 12;  %lowerleg01.R=>lowerleg01.R
+      6, 9;   %lowerleg01.R=>upperleg02.R
+      8, 20;  %foot.R=>foot.R
+      8, 15;  %foot.R=>lowerleg02.R
+      4, 10;  %spine03=>spine03
+      4, 7;   %spine03=>spine04
+      4, 4;   %spine03=>spine05
+      10, 47; %upperarm01.L=>upperarm01.L
+      10, 34; %upperarm01.L=>shoulder01.L
+      10, 21; %upperarm01.L=>clavicle.L
+      10, 18; %upperarm01.L=>spine01
+      10, 13; %upperarm01.L=>spine02
+      12, 61; %lowerarm01.L=>lowerarm01.L
+      12, 58; %lowerarm01.L=>upperarm02.L
+      14, 91; %wrist.L=>wrist.L
+      14, 74; %wrist.L=>lowerarm02.L
+      11, 48; %upperarm01.R=>upperarm01.R
+      11, 35; %upperarm01.R=>shoulder01.R
+      11, 22; %upperarm01.R=>clavicle.R
+      11, 18; %upperarm01.R=>spine01
+      11, 13; %upperarm01.R=>spine02
+      13, 62; %lowerarm01.R=>lowerarm01.R
+      13, 59; %lowerarm01.R=>upperarm02.R
+      15, 92; %wrist.R=>wrist.R
+      15, 75; %wrist.R=>lowerarm02.R
+      9, 23;  %neck01=>neck01
+      9, 18;  %neck01=>spine01
+      9, 13   %neck01=>spine02
+];
+
+J_173_prime = J_173;
+[n_parm, ~] = size(f_15_163_params);
+for i_param = 1:n_parm
+  i_15 = f_15_163_params(i_param, 1);
+  i_173 = f_15_163_params(i_param, 2);
+  J_173_prime(:, i_173) = f_i_inv(J_15(:, i_15), J_173(:, i_173), t);
+end
+J_173_prime_t = J_173_prime';
+
+
 
 t = t/4;
-for i_r = 1:n_j_173_t
-	for i_c = 1:t
-        i_c2 = (i_c-1)*4+1;
-		%q_prime(1:4) = [J_173_prime_t(i_r, i_c2), J_173_prime_t(i_r, i_c2+1), J_173_prime_t(i_r, i_c2+2), J_173_prime_t(i_r, i_c2+3)];
-		q_prime(1:4) = J_173_prime_t(i_r, i_c2:i_c2+3);
-        q_prime = q_prime./norm(q_prime);
-        J_173_prime_t(i_r, i_c2:i_c2+3) = q_prime(1:4);
-	end
-end
 
-cmp_q(1:n_j_173_t,1:t) = 0;
+cmp_alpha(1:n_j_173_t,1:t) = 0;
+cmp_u(1:n_j_173_t,1:t) = 0;
 cmp_t = 1:1:t;
 
+r2d = 180/3.1416;
 for i_r = 1:n_j_173_t
 	for i_c = 1:t
         i_c2 = (i_c-1)*4+1;
-		q(1:4) = [J_173_t(i_r, i_c2), J_173_t(i_r, i_c2+1), J_173_t(i_r, i_c2+2), J_173_t(i_r, i_c2+3)];
-		q_prime(1:4) = [J_173_prime_t(i_r, i_c2), J_173_prime_t(i_r, i_c2+1), J_173_prime_t(i_r, i_c2+2), J_173_prime_t(i_r, i_c2+3)];
-        cos = dot(q, q_prime);
-        cmp_q(i_r, i_c) = cos;
+        i_r2 = row_extracted(i_r);
+		    q(1:4) = [J_173_t(i_r2, i_c2), J_173_t(i_r2, i_c2+1), J_173_t(i_r2, i_c2+2), J_173_t(i_r2, i_c2+3)];
+		    q_prime(1:4) = [J_173_prime_t(i_r2, i_c2), J_173_prime_t(i_r2, i_c2+1), J_173_prime_t(i_r2, i_c2+2), J_173_prime_t(i_r2, i_c2+3)];
+        q_alpha = acos(q(1));
+        q_u(1:3) = q(2:4)/sin(q_alpha);
+        q_prime_alpha = acos(q_prime(1));
+        q_prime_u(1:3) = q_prime(2:4)/sin(q_prime_alpha);
+        cmp_alpha(i_r, i_c) = abs(q_prime_alpha-q_alpha) * r2d;
+        cmp_u(i_r, i_c) = dot(q_u, q_prime_u);
 	end
 end
-
 
 
 figure
-for i_g = 1:n_j_173_t
+for i_g = 1:20
 	subplot(10, 2, i_g)
-	plot(cmp_t, cmp_q(i_g, :), 'r');
+	plot(cmp_t, cmp_alpha(i_g, :), 'r');
 	title(titles(i_g));
 end
 
-for i_j_173_t = 1:n_j_173_t
-	J_173_t_raw(row_extracted(i_j_173_t), :) = J_173_prime_t(i_j_173_t, :);
+figure
+for i_g = 1:20
+  subplot(10, 2, i_g)
+  plot(cmp_t, cmp_u(i_g, :), 'r');
+  title(titles(i_g));
 end
+
 
 names = {
 	                        'root', ...
@@ -266,10 +314,10 @@ for i_g = 1:n_j
     fprintf(fid, ', %8d', t);
     for i_q = 1:t
         p_q = (i_q-1)*4+1;
-        w = J_173_t_raw(i_g,p_q);
-        x = J_173_t_raw(i_g,p_q+1);
-        y = J_173_t_raw(i_g,p_q+2);
-        z = J_173_t_raw(i_g,p_q+3);
+        w = J_173_t(i_g,p_q);
+        x = J_173_t(i_g,p_q+1);
+        y = J_173_t(i_g,p_q+2);
+        z = J_173_t(i_g,p_q+3);
         fprintf(fid, ', %7.4f, %7.4f, %7.4f, %7.4f', w, x, y, z);
     end
 end
