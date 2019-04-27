@@ -26,6 +26,7 @@ titles = {
 };
 
 J_173_t = csvread('make_human_173.csv',0,2);
+
 [~, t] = size(J_173_t);
 n_j_173_t = length(titles);
 %%read the data for joint 15 file
@@ -161,8 +162,7 @@ for i_r = 1:n_j_173_t
 		i_r2 = row_extracted(i_r);
 		q(1:4) = [J_173_t(i_r2, i_c2), J_173_t(i_r2, i_c2+1), J_173_t(i_r2, i_c2+2), J_173_t(i_r2, i_c2+3)];
 		q_prime(1:4) = [J_173_prime_t(i_r2, i_c2), J_173_prime_t(i_r2, i_c2+1), J_173_prime_t(i_r2, i_c2+2), J_173_prime_t(i_r2, i_c2+3)];
-		cos = dot(q, q_prime);
-		cmp_q(i_r2, i_c) = cos;
+		cmp_q(i_r, i_c) = abs(dot(q, q_prime));
 	end
 end
 
@@ -352,10 +352,10 @@ for i_g = 1:n_j
 		fprintf(fid, ', %8d', t);
 		for i_q = 1:t
 				p_q = (i_q-1)*4+1;
-				w = J_173_t(i_g,p_q);
-				x = J_173_t(i_g,p_q+1);
-				y = J_173_t(i_g,p_q+2);
-				z = J_173_t(i_g,p_q+3);
+				w = J_173_prime_t(i_g,p_q);
+				x = J_173_prime_t(i_g,p_q+1);
+				y = J_173_prime_t(i_g,p_q+2);
+				z = J_173_prime_t(i_g,p_q+3);
 				fprintf(fid, ', %7.4f, %7.4f, %7.4f, %7.4f', w, x, y, z);
 		end
 end
