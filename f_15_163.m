@@ -73,8 +73,7 @@ for i_r = 1:n_j_173_t
         i_c2 = (i_c-1)*4+1;
 		q(1:4) = [J_173_t(i_r, i_c2), J_173_t(i_r, i_c2+1), J_173_t(i_r, i_c2+2), J_173_t(i_r, i_c2+3)];
 		q_prime(1:4) = [J_173_prime_t(i_r, i_c2), J_173_prime_t(i_r, i_c2+1), J_173_prime_t(i_r, i_c2+2), J_173_prime_t(i_r, i_c2+3)];
-        cos = dot(q, q_prime);
-        cmp_q(i_r, i_c) = cos;
+        cmp_q(i_r, i_c) = abs(dot(q, q_prime));
 	end
 end
 
