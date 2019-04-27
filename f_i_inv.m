@@ -1,4 +1,4 @@
-function J_173_prime = f_i_inv(J_15, J_173, J_N4)
+function [J_173_prime, t] = f_i_inv(J_15, J_173, J_N4)
 	%options = optimoptions('lsqlin','Algorithm','trust-region-reflective');
 	%%%options = optimoptions(options,'SubproblemAlgorithm','factorization');
 	lb = 0;
@@ -20,5 +20,4 @@ function J_173_prime = f_i_inv(J_15, J_173, J_N4)
 		q = q/norm(q);
 		J_173_prime(J_i:J_i+3) = q;
 	end
-
 end
