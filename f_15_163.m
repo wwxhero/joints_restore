@@ -103,40 +103,28 @@ J_173_prime_t = J_173_prime';
 
 t = t/4;
 
-cmp_alpha(1:n_j_173_t,1:t) = 0;
-cmp_u(1:n_j_173_t,1:t) = 0;
+cmp_q(1:n_j_173_t,1:t) = 0;
 cmp_t = 1:1:t;
 
-r2d = 180/3.1416;
 for i_r = 1:n_j_173_t
 	for i_c = 1:t
-        i_c2 = (i_c-1)*4+1;
-        i_r2 = row_extracted(i_r);
-		    q(1:4) = [J_173_t(i_r2, i_c2), J_173_t(i_r2, i_c2+1), J_173_t(i_r2, i_c2+2), J_173_t(i_r2, i_c2+3)];
-		    q_prime(1:4) = [J_173_prime_t(i_r2, i_c2), J_173_prime_t(i_r2, i_c2+1), J_173_prime_t(i_r2, i_c2+2), J_173_prime_t(i_r2, i_c2+3)];
-        q_alpha = acos(q(1));
-        q_u(1:3) = q(2:4)/sin(q_alpha);
-        q_prime_alpha = acos(q_prime(1));
-        q_prime_u(1:3) = q_prime(2:4)/sin(q_prime_alpha);
-        cmp_alpha(i_r, i_c) = abs(q_prime_alpha-q_alpha) * r2d;
-        cmp_u(i_r, i_c) = dot(q_u, q_prime_u);
+				i_c2 = (i_c-1)*4+1;
+				q(1:4) = [J_173_t(i_r, i_c2), J_173_t(i_r, i_c2+1), J_173_t(i_r, i_c2+2), J_173_t(i_r, i_c2+3)];
+				q_prime(1:4) = [J_173_prime_t(i_r, i_c2), J_173_prime_t(i_r, i_c2+1), J_173_prime_t(i_r, i_c2+2), J_173_prime_t(i_r, i_c2+3)];
+				cos = dot(q, q_prime);
+				cmp_q(i_r, i_c) = cos;
 	end
 end
 
 
+
 figure
-for i_g = 1:20
+for i_g = 1:n_j_173_t
 	subplot(10, 2, i_g)
-	plot(cmp_t, cmp_alpha(i_g, :), 'r');
+	plot(cmp_t, cmp_q(i_g, :), 'r');
 	title(titles(i_g));
 end
 
-figure
-for i_g = 1:20
-  subplot(10, 2, i_g)
-  plot(cmp_t, cmp_u(i_g, :), 'r');
-  title(titles(i_g));
-end
 
 
 names = {
