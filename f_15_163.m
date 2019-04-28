@@ -38,19 +38,29 @@ end
 
 
 J_15 = J_15_t';
+[J_15_M, J_15_N] = size(J_15);
+J_15_N = J_15_N + 1;
+for i_r = 1:4:J_15_M
+	i_r_s = i_r;
+	i_r_e = i_r + 3;
+	J_15(i_r_s:i_r_e, J_15_N) = [1, 0, 0, 0];
+end
+
+
 J_173 = J_173_t';
-lb = zeros(15,1);
-ub = ones(15, 1);
+
+lb = zeros(J_15_N,1);
+ub = ones(J_15_N, 1);
 options = optimoptions('lsqlin','Algorithm','trust-region-reflective');
 %%options = optimoptions(options,'SubproblemAlgorithm','factorization');
 C = J_15;
-f = zeros(15, n_j_173_t);
+f = zeros(J_15_N, n_j_173_t);
 for i_f = 1:n_j_173_t
     d = J_173(:,i_f);
     f_15_163_i = lsqlin(C,d,[],[],[],[],lb,ub,[],options);
     f(:, i_f) = f_15_163_i;
 end
-
+csvwrite('f_15_163.csv', f);
 J_173_prime_t = (J_15*f)';
 %J_173_prime_t = J_173_t;
 
